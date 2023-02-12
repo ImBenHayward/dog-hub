@@ -53,14 +53,24 @@ export default {
       );
       dogsList.value = await response.json();
       loading.value = false;
-      console.log(loading.value);
 
       if (localStorage.getItem("userId") === null) {
         localStorage.setItem("userId", uuidv4());
       }
 
+      const localUserId = localStorage.getItem("userId");
+
       // For the purposes of this challenge, this is mocking authentication
-      getUser(localStorage.getItem("userId"));
+      getUser(localUserId)
+        .then((data) => {
+          // checks to see if the user currently exists
+          Object.keys(data).length === 0
+            ? (currentUser.value.id = localUserId)
+            : (currentUser.value = data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     });
 
     const loading = ref(true);
@@ -71,17 +81,27 @@ export default {
       favourites: [],
     });
 
-    async function getUser(userId) {
-      const response = await fetch(
-        `https://nsby657zyb.execute-api.eu-west-2.amazonaws.com/getUserFunction/${userId}`,
-        {
-          method: "get",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      currentUser.value = await response.json();
+    function getUser(userId) {
+      return new Promise((resolve, reject) => {
+        fetch(
+          `https://nsby657zyb.execute-api.eu-west-2.amazonaws.com/getUserFunction/${userId}`,
+          {
+            method: "get",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+          .then((response) => {
+            return response.text();
+          })
+          .then((data) => {
+            resolve(data ? JSON.parse(data) : {});
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
     }
 
     async function upsertUser(updatedUser) {
