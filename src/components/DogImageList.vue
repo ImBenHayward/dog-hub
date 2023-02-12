@@ -1,6 +1,6 @@
 <template>
   <div class="dog-list-container">
-    <div v-for="dog in dogsList" :key="dog.id">
+    <div v-for="dog in computedList" :key="dog.id">
       <DogImage
         :dogItem="dog"
         :user="user"
@@ -12,6 +12,7 @@
 
 <script>
 import DogImage from "./DogImage.vue";
+import { computed } from 'vue';
 
 export default {
   name: "DogImageList",
@@ -25,13 +26,13 @@ export default {
     user: Object,
   },
 
-  setup() {
-    function checkEmit(event) {
-      console.log("emit event", event);
-    }
+  setup(props) {
+    const computedList = computed(() => {
+      return props.dogsList.slice(0, 10);
+    })
 
     return {
-      checkEmit,
+      computedList
     };
   },
 };
